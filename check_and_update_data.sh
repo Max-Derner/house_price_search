@@ -3,28 +3,30 @@
 # source common variables
 . ./common_variables.sh
 
-# give space between output
-echo -e "\n"
+# source common funtions
+. ./common_functions.sh
 
-valid_y_n_input() {
-    # simple pattern match
-    case $1 in
-        [yYnN])
-            return 0
-            ;;
-        *)
-            return 1
-            ;;
-    esac
+download_update_data() {
+    CHOICES=$(awk -F ',' '{print $1}' < "$ENDPOINTS_FILE")
+    echo "Select the dataset you would like to download, or type f when finished"
+    select CHOICE in $CHOICES; do
+        if [ "${REPLY}" = 'f' ]; then return 0; fi
+        if [ -n "${CHOICE}" ]; then
+            CSV_LINE=$(grep -F "${CHOICE}" < "$ENDPOINTS_FILE")
+            END_POINT=$(echo "${CSV_LINE}" | awk -F ',' '{print $2}')
+            CURRENT_MONTH=$(date '+%Y-%m')
+            FILE_NAME=$(echo "${CSV_LINE}" | awk -F ',' '{print $3}' | sed -e "s/<MONTH>/${CURRENT_MONTH}/")
+            FILE_PATH="${DATA_SET_DIR}${FILE_NAME}"
+            echo "downloading..."
+            eval "curl -L ${END_POINT} > ${FILE_PATH}" && echo "file now at ${FILE_PATH}"
+        fi
+        # clear reply and choice, else behaviour unpredictable
+        REPLY=""
+        CHOICE=""
+    done
 }
 
-download_data() {
-    echo "Let's do this thing!"
-}
-
-
-# fetch data sets from directory and supress failures
-DATA_SETS=$(ls ./"${DATA_SET_DIR}"*.csv 2>/dev/null)
+DATA_SETS=$(get_data_sets)
 
 if [ -z "${DATA_SETS}" ]; then
     echo "It appears as though you do not have any data sets downloaded."
@@ -33,30 +35,30 @@ else
     echo -e "${DATA_SETS}\n"
 fi
 
-if true; then
-    echo "Would you like to download or update datasets? (y/n)"
-    # restrict input
-    while ! valid_y_n_input "${CHOICE}"; do
-        read -n 1 -s CHOICE
-    done
-    case "${CHOICE}" in
-        [yY])
-            download_data
-            ;;
-        [nN])
-            if [ -z "${DATA_SETS}" ]; then
-                echo "We cannot search datasets if we have none."
-                echo "Exiting..."
-                exit 0
-            else
-                echo "ok"
-                return 0
-            fi
-            ;;
-        *)
-            echo "Something has gone very wrong"
+
+echo "Would you like to download or update datasets? (y/n)"
+# restrict input
+while ! valid_y_n_input "${CHOICE}"; do
+    read -n 1 -s CHOICE
+done
+case "${CHOICE}" in
+    [yY])
+        download_update_data
+        ;;
+    [nN])
+        if [ -z "${DATA_SETS}" ]; then
+            echo "We cannot search datasets if we have none."
             echo "Exiting..."
-            exit 1
-            ;;
-    esac
-fi
+            exit 0
+        else
+            echo "ok"
+            return 0
+        fi
+        ;;
+    *)
+        echo "Something has gone very wrong"
+        echo "Exiting..."
+        exit 1
+        ;;
+esac
+
