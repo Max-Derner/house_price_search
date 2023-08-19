@@ -6,11 +6,13 @@
 # source common funtions
 . ./common_functions.sh
 
-download_update_data() {
+download_data() {
     CHOICES=$(awk -F ',' '{print $1}' < "$ENDPOINTS_FILE")
-    echo "Select the dataset you would like to download, or type f when finished"
+    CHOICES+=' Exit'
+    QUEUE="Select the dataset you would like to download."
+    echo "${QUEUE}"
     select CHOICE in $CHOICES; do
-        if [ "${REPLY}" = 'f' ]; then return 0; fi
+        if [ "${CHOICE}" = 'Exit' ]; then return 0; fi ### ! Exit case ###
         if [ -n "${CHOICE}" ]; then
             CSV_LINE=$(grep -F "${CHOICE}" < "$ENDPOINTS_FILE")
             END_POINT=$(echo "${CSV_LINE}" | awk -F ',' '{print $2}')
@@ -18,11 +20,12 @@ download_update_data() {
             FILE_NAME=$(echo "${CSV_LINE}" | awk -F ',' '{print $3}' | sed -e "s/<MONTH>/${CURRENT_MONTH}/")
             FILE_PATH="${DATA_SET_DIR}${FILE_NAME}"
             echo "downloading..."
-            eval "curl -L ${END_POINT} > ${FILE_PATH}" && echo "file now at ${FILE_PATH}"
+            eval "curl -L ${END_POINT}" | sed -e 's/",/,/g' -e 's/,"/,/g' -e 's/^"//g' -e 's/"$//g' > "${FILE_PATH}" && echo "file now at ${FILE_PATH}"
         fi
         # clear reply and choice, else behaviour unpredictable
         REPLY=""
         CHOICE=""
+        echo "${QUEUE}"
     done
 }
 
@@ -36,29 +39,26 @@ else
 fi
 
 
-echo "Would you like to download or update datasets? (y/n)"
+echo "Would you like to download datasets? (y/n)"
 # restrict input
 while ! valid_y_n_input "${CHOICE}"; do
     read -n 1 -s CHOICE
 done
 case "${CHOICE}" in
     [yY])
-        download_update_data
+        echo "Downloading the same dataset will overwrite it..."
+        download_data
+        echo "Continuing."
         ;;
     [nN])
         if [ -z "${DATA_SETS}" ]; then
             echo "We cannot search datasets if we have none."
             echo "Exiting..."
-            exit 0
+            exit 0 ### ! Exit case ###
         else
-            echo "ok"
-            return 0
+            echo "Ok, continuing."
+            return 0 ### ! Exit case ###
         fi
-        ;;
-    *)
-        echo "Something has gone very wrong"
-        echo "Exiting..."
-        exit 1
         ;;
 esac
 
