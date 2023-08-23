@@ -20,7 +20,7 @@ download_data() {
             FILE_NAME=$(echo "${CSV_LINE}" | awk -F ',' '{print $3}' | sed -e "s/<MONTH>/${CURRENT_MONTH}/")
             FILE_PATH="${DATA_SET_DIR}${FILE_NAME}"
             echo "downloading..."
-            eval "curl -L ${END_POINT}" | sed -e 's/",/,/g' -e 's/,"/,/g' -e 's/^"//g' -e 's/"$//g' > "${FILE_PATH}" && echo "file now at ${FILE_PATH}"
+            eval "curl -L ${END_POINT}" | sed -e 's/",/,/g' -e 's/,"/,/g' -e 's/^"//g' -e 's/"$//g' -e 's/ 00:00,/,/g' > "${FILE_PATH}" && echo "file now at ${FILE_PATH}"
         fi
         # clear reply and choice, else behaviour unpredictable
         REPLY=""
