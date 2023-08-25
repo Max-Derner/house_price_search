@@ -1,2 +1,6 @@
 .vscode/*
 house_price_data_sets/*.csv
+archived_python_logs/
+python_logs/
+searcher_venv/
+**/__pycache__/**

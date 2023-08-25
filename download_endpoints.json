@@ -1,0 +1,10 @@
+{
+    "all_data": {
+        "url": "http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-complete.csv",
+        "file_name": "all-data-up-to-<MONTH>.csv"
+        },
+    "current_months_data":{
+            "url": "http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-monthly-update-new-version.csv",
+            "file_name": "update-data-from-<MONTH>.csv"
+        }
+}

@@ -1,0 +1,4 @@
+{
+    "me": "I am a JSON object",
+    "warning": "Please don't change me, or my tests will break"
+}
